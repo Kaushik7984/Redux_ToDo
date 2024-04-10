@@ -5,21 +5,33 @@ import AddTodo from './AddTodo'
 
 function Todos() {
   const [todoType, setTodoType] = useState("div")
-  const [editInput, setEditInput] = useState("")
+  const [editInput, setEditInput] = useState("error")
 
   const todos = useSelector(state => state.todos)
   const dispatch = useDispatch()
 
 
-  const editTodoSubmit = (todoId, mode) => {
+  const editTodoSubmit = (event, todoId, mode, todoText) => {
+    event.preventDefault()
+    let value
+
     if (mode === "Submit") {
       console.log("Submit Edit!")
-      dispatch(editTodoSubmitToStore({ todoId, editInput }))
+      if (editInput === '') {
+        value = todoText
+        dispatch(editTodoSubmitToStore({ todoId, value }))
+      }
+      else {
+        value = editInput
+        dispatch(editTodoSubmitToStore({ todoId, value }))
+      }
     }
     if (mode === "Edit") {
       console.log("Switch to Edit!")
       dispatch(editTodo(todoId))
     }
+
+    setEditInput('')
 
   }
 
@@ -29,8 +41,9 @@ function Todos() {
     <>
       {/* <div>Todos</div> */}
       <ul className="list-none">
+        {console.log(todos)}
         {todos.length === 0 ?
-          <p className="mt-10 flex  justify-center items-center bg-zinc-800 px-4 py-2 rounded text-white text-3xl" >No Work Pending</p>
+          <p className="mt-10 flex  justify-center items-center bg-zinc-800 px-4 py-2 rounded text-white text-3xl font-sans" >You have no pendin tasks !!</p>
           :
 
           todos.map((todo) => {
@@ -41,17 +54,21 @@ function Todos() {
                 key={todo.id}
               >
 
-                {todo.isTodoEdit === true ? <input required defaultValue={todo.text} type="text" onChange={(e) => setEditInput(e.target.value)} /> : <div className='text-white'> {todo.text}</div>}
+                <form onSubmit={() => { editTodoSubmit(event, todo.id, todo.isTodoEdit === true ? "Submit" : "Edit", todo.text) }} >
+
+                  {todo.isTodoEdit === true ? <input defaultValue={todo.text} type="text" onChange={(e) => setEditInput(e.target.value)} required /> : <div className='text-white'> {todo.text}</div>}
 
 
-                <button
-                  onClick={() => { editTodoSubmit(todo.id, todo.isTodoEdit === true ? "Submit" : "Edit") }}
+                  {/* Edit and Submit Button */}
+                  <button
+                    type='submit'
+                    className={`absolute right-[430px] text-white h-8 bg-red-500 border-0 py-1  ${todo.isTodoEdit === true ? "mt-[-4px]" : "mt-[-28px]"} px-4 focus:outline-none  hover:bg-red-600 rounded text-md`}
+                  >{todo.isTodoEdit === true ? "Submit" : "Edit"}
+                  </button>
+                </form>
 
-                  className="absolute right-[430px] text-white h-8 bg-red-500 border-0 py-1 px-4 focus:outline-none  hover:bg-red-600 rounded text-md"
-                >{todo.isTodoEdit === true ? "Submit" : "Edit"}
-                </button>
 
-
+                {/* Delete Button */}
                 <button
                   onClick={() => dispatch(removeTodo(todo.id))}
                   className="text-white bg-red-500 border-0 py-1 px-4 focus:outline-none relative hover:bg-red-600 rounded text-md"
